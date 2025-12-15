@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { postData } from "@/lib/api";
-
+import { registerAction } from "@/lib/api";
+import Link from "next/link";
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -19,49 +19,58 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { SignupRequest, SignupResponse } from "@/types/register-api";
+import { SignupRequest, SignupResponse } from "@/types";
+import { useForm } from "react-hook-form";
+
+type SignupFormFields = {
+  fullName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+};
 
 export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
   const router = useRouter();
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const data = await postData<SignupRequest, SignupResponse>("user/register/", {
-        // full_name: fullName,
-        email,
-        password,
+  
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+    watch,
+  } = useForm<SignupFormFields>({
+        mode: "onChange"
       });
 
-      // localStorage.setItem("token", data.token);
-      // console.log(data)
-      router.push("/login");
-    } catch (err: unknown) {
-      console.log(err.email);
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Something went wrong");
+  const password = watch("password");
+
+  const onSubmit = async (data: SignupFormFields) => {
+    try {
+      const result = await registerAction("user/register/", {
+        email: data.email,
+        password: data.password,
+        password2: data.confirmPassword
+      });
+
+      if (!result.ok) {
+        const err = result.error;
+
+        if (err.password) {
+          setError("password", { type: "server", message: err.password.join(" ") });
+        } else if (err.email) {
+          setError("email", { type: "server", message: err.email.join(" ") });
+        } else {
+          setError("root", { type: "server", message: "Something went wrong" });
+        }
+        return;
       }
-    } finally {
-      setLoading(false);
+
+      router.push("/login");
+    } catch {
+      setError("root", { type: "server", message: "Something went wrong" });
     }
   };
+
   return (
     <Card {...props}>
       <CardHeader>
@@ -71,11 +80,14 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="name">Full Name</FieldLabel>
               <Input id="name" type="text" placeholder="John Doe" required />
+              {errors.fullName && (
+                <p className="text-red-500">{errors.fullName.message}</p>
+              )}
             </Field>
             <Field>
               <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -83,10 +95,17 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
                 id="email"
                 type="email"
                 placeholder="m@example.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /\S+@\S+\.\S+/,
+                    message: "Invalid email address",
+                  },
+                })}
               />
+              {errors.email && (
+                <p className="text-red-500">{errors.email.message}</p>
+              )}
               <FieldDescription>
                 We&apos;ll use this to contact you. We will not share your email
                 with anyone else.
@@ -94,35 +113,53 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
             </Field>
             <Field>
               <FieldLabel htmlFor="password">Password</FieldLabel>
-              <Input id="password" type="password" required 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}  
+              <Input 
+                id="password" 
+                type="password"
+                {...register("password", {
+                  required: "Password is required",
+                  minLength: {
+                    value: 8,
+                    message: "Password must be at least 8 characters",
+                  },
+                })}  
               />
-              <FieldDescription>
-                Must be at least 8 characters long.
-              </FieldDescription>
+              {errors.password && (
+                <p className="text-red-500">{errors.password.message}</p>
+              )}
             </Field>
             <Field>
               <FieldLabel htmlFor="confirm-password">
                 Confirm Password
               </FieldLabel>
-              <Input id="confirm-password" type="password" required 
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}  
+              <Input 
+                id="confirm-password" 
+                type="password"
+                {...register("confirmPassword", {
+                  required: "Confirm your password",
+                  validate: (value) =>
+                    value === password || "Passwords do not match",
+                })} 
               />
-              <FieldDescription>Please confirm your password.</FieldDescription>
+              {errors.confirmPassword && (
+                <p className="text-red-500">{errors.confirmPassword.message}</p>
+              )}
             </Field>
+
+            {errors.root && (
+              <p className="text-red-500 text-center text-sm mb-2">{errors.root.message}</p>
+            )}
+
             <FieldGroup>
               <Field>
-                <Button type="submit" disabled={loading}>
-                  {loading ? "Creating account..." : "Create Account"}
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Creating account..." : "Create Account"}
                 </Button>
                 <Button variant="outline" type="button">
                   Sign up with Google
                 </Button>
-                {error && <p className="text-red-500 text-center mt-2">{error}</p>}
                 <FieldDescription className="px-6 text-center">
-                  Already have an account? <a href="#">Sign in</a>
+                  Already have an account? <Link href="/login" className="text-blue-500 underline">Sign in</Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>

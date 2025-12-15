@@ -1,3 +1,5 @@
+import { UUID } from "crypto";
+
 export interface SignupRequest {
 //   full_name: string;
   email: string;
@@ -5,10 +7,10 @@ export interface SignupRequest {
 }
 
 export interface SignupResponse {
-    id: BigInteger;
+    id: number;
     email: string;
-    is_active: boolean;
-    is_staff: boolean;
+    is_active: boolean | undefined;
+    is_staff: boolean | undefined;
     date_joined: string;
 }
 // export interface SignupResponse {
