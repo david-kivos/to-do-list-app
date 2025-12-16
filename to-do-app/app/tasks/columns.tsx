@@ -17,6 +17,7 @@ import { EditTaskDialog } from "@/components/edit-task-dialog"
 // import { deleteTask } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { TaskActions } from "./task-actions"
+import { Badge } from "@/components/ui/badge"
 
 export type Task = {
   id: string
@@ -24,6 +25,28 @@ export type Task = {
   description: string
   created_at: string
   status: "Not Started" | "In Progress" | "Done" | "Cancelled"
+}
+
+const formatStatus = (status: string): string => {
+  return status
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'not_started':
+      return 'bg-gray-500'
+    case 'in_progress':
+      return 'bg-blue-500'
+    case 'done':
+      return 'bg-green-500'
+    case 'cancelled':
+      return 'bg-red-500'
+    default:
+      return 'bg-gray-500'
+  }
 }
 
 export const columns: ColumnDef<Task>[] = [
@@ -48,6 +71,14 @@ export const columns: ColumnDef<Task>[] = [
   {
     accessorKey: "status",
     header: "Status",
+    cell: ({ row }) => {
+      const status = row.getValue("status") as string
+      return (
+        <Badge className={getStatusColor(status)}>
+          {formatStatus(status)}
+        </Badge>
+      )
+    },
   },
   {
     accessorKey: "created_at",

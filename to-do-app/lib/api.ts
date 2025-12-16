@@ -147,7 +147,7 @@ export async function updateTask(taskId: string, payload: UpdateTaskPayload) {
 
   const data = await res.json();
   
-  revalidatePath('/tasks');
+  revalidatePath('/dashboard');
   
   return data;
 }
@@ -198,4 +198,46 @@ export async function getCurrentUser() {
   } catch {
     return null;
   }
+}
+
+type CreateTaskPayload = {
+  title: string;
+  description?: string;
+  status: "Not Started" | "In Progress" | "Done" | "Cancelled";
+}
+
+export async function createTask(payload: CreateTaskPayload) {
+  const cookieStore = await cookies();
+  const access = cookieStore.get('access');
+
+  if (!access) {
+    throw new Error("Not authenticated");
+  }
+
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/task/`,
+    {
+      method: "POST",
+      headers: {
+        'Authorization': `Bearer ${access.value}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (res.status === 401) {
+    redirect("/login");
+  }
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Failed to create task");
+  }
+
+  const data = await res.json();
+  
+  revalidatePath('/dashboard');
+  
+  return data;
 }
