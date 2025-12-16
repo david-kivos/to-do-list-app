@@ -1,6 +1,8 @@
 "use server";
 import { access } from 'fs';
 import { cookies } from 'next/headers';
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export async function postData<Req, Res>(endpoint: string, data: Req): Promise<{ ok: boolean; data?: Res; error?: any }> {
   const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/${endpoint}`;
@@ -99,4 +101,79 @@ export async function registerAction<Req, Res>(endpoint: string, payload: Req): 
 
   // return { success: true, message: data.message };
   return { ok: true, data: data as Res };
+}
+
+type UpdateTaskPayload = {
+  title?: string;
+  description?: string;
+  status?: "not_started" | "in_progress" | "done" | "cancelled";
+}
+
+export async function updateTask(taskId: string, payload: UpdateTaskPayload) {
+  const cookieStore = await cookies();
+  const access = cookieStore.get('access');
+
+  if (!access) {
+    throw new Error("Not authenticated");
+  }
+
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/task/${taskId}/`,
+    {
+      method: "PATCH",
+      headers: {
+        'Authorization': `Bearer ${access.value}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (res.status === 401) {
+    redirect("/login");
+  }
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Failed to update task");
+  }
+
+  const data = await res.json();
+  
+  revalidatePath('/tasks');
+  
+  return data;
+}
+
+export async function deleteTask(taskId: string) {
+  const cookieStore = await cookies();
+  const access = cookieStore.get('access');
+
+  if (!access) {
+    throw new Error("Not authenticated");
+  }
+
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/task/${taskId}/`,
+    {
+      method: "DELETE",
+      headers: {
+        'Authorization': `Bearer ${access.value}`,
+      },
+    }
+  );
+
+  if (res.status === 401) {
+    redirect("/login");
+  }
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Failed to delete task");
+  }
+
+  // Revalidate the tasks page to refresh the data
+  revalidatePath('/tasks');
+  
+  return { success: true };
 }
