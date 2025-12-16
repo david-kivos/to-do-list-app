@@ -63,6 +63,13 @@ export async function loginAction(payload: LoginPayload) {
     maxAge: 7 * 24 * 60 * 60,
   });
 
+  cookieStore.set('user', JSON.stringify(data.user), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60,
+  });
+
   return { success: true, message: data.message };
 }
 
@@ -176,4 +183,19 @@ export async function deleteTask(taskId: string) {
   revalidatePath('/tasks');
   
   return { success: true };
+}
+
+export async function getCurrentUser() {
+  const cookieStore = await cookies();
+  const userCookie = cookieStore.get('user');
+  
+  if (!userCookie) {
+    return null;
+  }
+  
+  try {
+    return JSON.parse(userCookie.value);
+  } catch {
+    return null;
+  }
 }
