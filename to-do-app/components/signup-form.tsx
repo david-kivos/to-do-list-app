@@ -49,7 +49,8 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
       const result = await registerAction("user/register/", {
         email: data.email,
         password: data.password,
-        password2: data.confirmPassword
+        password2: data.confirmPassword,
+        full_name: data.fullName
       });
 
       if (!result.ok) {
@@ -84,7 +85,14 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="name">Full Name</FieldLabel>
-              <Input id="name" type="text" placeholder="John Doe" required />
+              <Input 
+                id="fullName" 
+                type="text" 
+                placeholder="John Doe" 
+                {...register("fullName", {
+                  required: "Full name is required",
+                })}
+              />
               {errors.fullName && (
                 <p className="text-red-500">{errors.fullName.message}</p>
               )}

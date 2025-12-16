@@ -33,7 +33,7 @@ export function LoginForm({
   const onSubmit = async (data: LoginFormFields) => {
     try {
       await loginAction(data);
-      router.push("/tasks");
+      router.push("/dashboard");
     } catch (err: any) {
       console.log(err);
       setError("root", {
