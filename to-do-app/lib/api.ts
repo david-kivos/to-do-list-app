@@ -241,3 +241,13 @@ export async function createTask(payload: CreateTaskPayload) {
   
   return data;
 }
+
+export async function logoutAction() {
+  const cookieStore = await cookies();
+  
+  cookieStore.delete('access');
+  cookieStore.delete('refresh');
+  cookieStore.delete('user');
+  
+  redirect('/login');
+}
