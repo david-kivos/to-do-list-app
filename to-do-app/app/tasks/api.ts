@@ -1,20 +1,26 @@
 "use server"
 
 import { cookies } from "next/headers";
-import { Task } from "./columns"
+import { Task, PaginatedTaskResponse } from "./columns"
 import { redirect } from "next/navigation";
 
-export async function getTasksData(): Promise<Task[]> {
+export async function getTasksData(
+  page: number = 1, 
+  pageSize: number = 10
+): Promise<PaginatedTaskResponse> {
   const cookieStore = await cookies();
   const access = cookieStore.get('access')
-  console.log('access: ', access)
 
   if (!access) {
     redirect("/login");
   }
+  const params = new URLSearchParams({
+    page: page.toString(),
+    page_size: pageSize.toString(),
+  });
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/task/all/`,
+    `${process.env.NEXT_PUBLIC_API_URL}/task/all/?${params}`,
     {
       method: "GET",
       headers: {

@@ -21,22 +21,33 @@ import {
 } from "@/components/ui/table"
 
 import { Button } from "@/components/ui/button"
-
+import { useRouter } from "next/navigation"
+// interface DataTableProps<TData, TValue> {
+//   columns: ColumnDef<TData, TValue>[]
+//   data: TData[]
+// }
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  count: number
+  page: number
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  count,
+  page,
 }: DataTableProps<TData, TValue>) {
+    const router = useRouter()
+    const pageSize = 10
+    const totalPages = Math.ceil(count / pageSize)
+
     const [sorting, setSorting] = React.useState<SortingState>([])
     const table = useReactTable({
         data,
         columns,
         getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: setSorting,
         getSortedRowModel: getSortedRowModel(),
         state: {
@@ -94,16 +105,21 @@ export function DataTable<TData, TValue>({
             <Button
             variant="outline"
             size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            disabled={page <= 1}
+            onClick={() => router.push(`?page=${page - 1}`)}
             >
             Previous
             </Button>
+
+            <span className="text-sm">
+                Page {page} of {totalPages}
+            </span>
+
             <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            disabled={page >= totalPages}
+            onClick={() => router.push(`?page=${page + 1}`)}
             >
             Next
             </Button>

@@ -257,3 +257,48 @@ export async function logoutAction() {
   
   redirect('/login');
 }
+
+export async function googleLoginAction(accessToken: string, userInfo: any) {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/register/google/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ 
+      access_token: accessToken,
+      ...userInfo 
+    }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.detail || "Google login failed");
+  }
+
+  const data = await res.json();
+  
+  const cookieStore = await cookies();
+  
+  cookieStore.set('access', data.access, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 5 * 60,
+  });
+  
+  cookieStore.set('refresh', data.refresh, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60,
+  });
+
+  cookieStore.set('user', JSON.stringify(data.user), {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60,
+  });
+
+  return { success: true, user: data.user };
+}

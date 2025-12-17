@@ -15,11 +15,11 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { postData, loginAction } from "@/lib/api"
+import { loginAction, googleLoginAction } from "@/lib/api"
 import Link from "next/link";
 import { useForm } from "react-hook-form";
+import { useGoogleLogin } from '@react-oauth/google';
 
 type LoginFormFields = { email: string; password: string };
 
@@ -40,13 +40,6 @@ export function LoginForm({
         type: "server",
         message: err.message || "Invalid credentials",
       });
-      // if (err?.detail) {
-      //   setError("root", {
-      //     type: "server",
-      //     message: err.detail[0],
-      //   });
-      //   return;
-      // }
 
       Object.keys(err || {}).forEach((key) => {
         setError(key as keyof LoginFormFields, {
@@ -63,6 +56,37 @@ export function LoginForm({
       }
     }
   };
+  
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: {
+            Authorization: `Bearer ${tokenResponse.access_token}`,
+          },
+        });
+        
+        const userInfo = await userInfoResponse.json();
+        
+        // Send to your backend
+        await googleLoginAction(tokenResponse.access_token, userInfo);
+        router.push("/tasks");
+      } catch (err: any) {
+        console.error("Google login error:", err);
+        setError("root", {
+          type: "server",
+          message: err.message || "Google login failed",
+        });
+      }
+    },
+    onError: () => {
+      setError("root", {
+        type: "server",
+        message: "Google login failed. Please try again.",
+      });
+    },
+  });
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -124,7 +148,11 @@ export function LoginForm({
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Logging in..." : "Login"}
                 </Button>
-                <Button variant="outline" type="button">
+                <Button 
+                  variant="outline" 
+                  type="button"
+                  onClick={() => handleGoogleLogin()}
+                >
                   Login with Google
                 </Button>
                 <FieldDescription className="text-center">

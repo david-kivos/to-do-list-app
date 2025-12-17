@@ -26,6 +26,12 @@ export type Task = {
   created_at: string
   status: "Not Started" | "In Progress" | "Done" | "Cancelled"
 }
+export type PaginatedTaskResponse = {
+  count: number
+  next: string | null
+  previous: string | null
+  results: Task[]
+}
 
 const formatStatus = (status: string): string => {
   return status
