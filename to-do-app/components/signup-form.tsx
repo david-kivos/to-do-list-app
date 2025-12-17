@@ -66,7 +66,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
         return;
       }
 
-      router.push("/login");
+      router.push("/dashboard");
     } catch {
       setError("root", { type: "server", message: "Something went wrong" });
     }

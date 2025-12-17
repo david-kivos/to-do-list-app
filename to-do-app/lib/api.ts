@@ -106,7 +106,13 @@ export async function registerAction<Req, Res>(endpoint: string, payload: Req): 
     maxAge: 7 * 24 * 60 * 60,
   });
 
-  // return { success: true, message: data.message };
+  cookieStore.set('user', JSON.stringify(data.user), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60,
+  });
+
   return { ok: true, data: data as Res };
 }
 
