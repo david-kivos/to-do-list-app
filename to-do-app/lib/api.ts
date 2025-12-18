@@ -43,7 +43,7 @@ export async function loginAction(payload: LoginPayload) {
   if (!res.ok) {
     const error = await res.json();
     console.log('error login: ', error)
-    throw new Error(error.detail || "Login failed");
+    return { success: false, error };
 
   }
 

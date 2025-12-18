@@ -32,21 +32,34 @@ export function LoginForm({
 
   const onSubmit = async (data: LoginFormFields) => {
     try {
-      await loginAction(data);
-      router.push("/dashboard");
-    } catch (err: any) {
-      console.log(err);
-      setError("root", {
-        type: "server",
-        message: err.message || "Invalid credentials",
-      });
+      const result = await loginAction(data);
 
-      Object.keys(err || {}).forEach((key) => {
-        setError(key as keyof LoginFormFields, {
-          type: "server",
-          message: err[key].join(" "),
-        });
-      });
+      if (!result.success) {
+        const err = result.error;
+        
+        if (err.non_field_errors) {
+          setError("root", {
+            type: "server",
+            message: err.non_field_errors.join(" "),
+          });
+        }
+      }
+      else {
+        router.push("/dashboard");
+      }
+    } catch (err: any) {
+      console.log('caught error: ', err);
+      // setError("root", {
+      //   type: "server",
+      //   message: err.message || "Invalid credentials",
+      // });
+
+      // Object.keys(err || {}).forEach((key) => {
+      //   setError(key as keyof LoginFormFields, {
+      //     type: "server",
+      //     message: err[key].join(" "),
+      //   });
+      // });
 
       if (!err) {
         setError("root", {
