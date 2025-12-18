@@ -58,19 +58,11 @@ export function LoginForm({
   };
   
   const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
+    flow: "auth-code",
+    onSuccess: async (codeResponse) => {
       try {
-        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: {
-            Authorization: `Bearer ${tokenResponse.access_token}`,
-          },
-        });
-        
-        const userInfo = await userInfoResponse.json();
-        
-        // Send to your backend
-        await googleLoginAction(tokenResponse.access_token, userInfo);
-        router.push("/tasks");
+        await googleLoginAction(codeResponse.code);
+        router.push("/dashboard");
       } catch (err: any) {
         console.error("Google login error:", err);
         setError("root", {

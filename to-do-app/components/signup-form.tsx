@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { registerAction } from "@/lib/api";
+import { registerAction, googleLoginAction } from "@/lib/api";
 import Link from "next/link";
 import { Button } from "@/components/ui/button"
 import {
@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { SignupRequest, SignupResponse } from "@/types";
 import { useForm } from "react-hook-form";
+import { useGoogleLogin } from '@react-oauth/google';
 
 type SignupFormFields = {
   fullName: string;
@@ -71,6 +72,28 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
       setError("root", { type: "server", message: "Something went wrong" });
     }
   };
+
+  const handleGoogleSignup = useGoogleLogin({
+    flow: "auth-code",
+    onSuccess: async (codeResponse) => {
+      try {
+        await googleLoginAction(codeResponse.code);
+        router.push("/dashboard");
+      } catch (err: any) {
+        console.error("Google signup error:", err);
+        setError("root", {
+          type: "server",
+          message: err.message || "Google signup failed",
+        });
+      }
+    },
+    onError: () => {
+      setError("root", {
+        type: "server",
+        message: "Google signup failed. Please try again.",
+      });
+    },
+  });
 
   return (
     <Card {...props}>
@@ -163,7 +186,11 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Creating account..." : "Create Account"}
                 </Button>
-                <Button variant="outline" type="button">
+                <Button 
+                  variant="outline" 
+                  type="button"
+                  onClick={() => handleGoogleSignup()}
+                >
                   Sign up with Google
                 </Button>
                 <FieldDescription className="px-6 text-center">

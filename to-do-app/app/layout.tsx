@@ -30,7 +30,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
+        <GoogleOAuthProvider clientId={process.env.GOOGLE_CLIENT_ID!}>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
