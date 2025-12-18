@@ -24,7 +24,7 @@ export type Task = {
   title: string
   description: string
   created_at: string
-  status: "Not Started" | "In Progress" | "Done" | "Cancelled"
+  status: "not_started" | "in_progress" | "done" | "cancelled"
 }
 export type PaginatedTaskResponse = {
   count: number
