@@ -14,6 +14,18 @@ import { EditTaskDialog } from "@/components/edit-task-dialog"
 import { deleteTask } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { Task } from "./columns"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { toast } from "sonner"
+import { Spinner } from "@/components/ui/spinner"
 
 type TaskActionsProps = {
   task: Task
@@ -21,16 +33,26 @@ type TaskActionsProps = {
 
 export function TaskActions({ task }: TaskActionsProps) {
   const [isEditOpen, setIsEditOpen] = useState(false)
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const router = useRouter()
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this task?")) return
-    
+    setIsDeleting(true)
     try {
       await deleteTask(task.id)
+      toast.success("Task deleted", {
+        description: `Task "${task.title}" has been removed from your list.`,
+      })
+      setIsDeleteOpen(false)
       router.refresh()
     } catch (error: any) {
-      alert(error.message || "Failed to delete task")
+      console.error("Failed to delete task:", error)
+      toast.error("Failed to delete task", {
+        description: error.message || "Please try again.",
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -48,7 +70,10 @@ export function TaskActions({ task }: TaskActionsProps) {
           <DropdownMenuItem onClick={() => setIsEditOpen(true)}>
             Edit task
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+          <DropdownMenuItem 
+            onClick={() => setIsDeleteOpen(true)} 
+            className="text-red-600"
+          >
             Delete task
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -59,6 +84,38 @@ export function TaskActions({ task }: TaskActionsProps) {
         open={isEditOpen}
         onOpenChange={setIsEditOpen}
       />
+
+      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the task
+              <span className="font-semibold"> &quot;{task.title}&quot;</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault()
+                handleDelete()
+              }}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? (
+                <>
+                  <Spinner className="mr-2" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

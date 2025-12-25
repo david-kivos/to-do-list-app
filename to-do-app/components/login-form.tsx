@@ -20,6 +20,7 @@ import { loginAction, googleLoginAction } from "@/lib/api"
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { useGoogleLogin } from '@react-oauth/google';
+import { Spinner } from "./ui/spinner";
 
 type LoginFormFields = { email: string; password: string };
 
@@ -110,6 +111,7 @@ export function LoginForm({
                   id="email"
                   type="email"
                   placeholder="m@example.com"
+                  disabled={isSubmitting}
                   {...register("email", {
                     required: "Email is required",
                     pattern: {
@@ -135,6 +137,7 @@ export function LoginForm({
                 <Input 
                   id="password" 
                   type="password" 
+                  disabled={isSubmitting}
                   {...register("password", {
                     required: "Password is required",
                     minLength: { value: 8, message: "Password must be at least 8 characters" },
@@ -151,17 +154,32 @@ export function LoginForm({
 
               <Field>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Logging in..." : "Login"}
+                  {isSubmitting ? (
+                    <>
+                      <Spinner className="mr-1" />
+                      Logging in...
+                    </>
+                  ) : (
+                    "Login"
+                  )}
                 </Button>
                 <Button 
                   variant="outline" 
                   type="button"
+                  disabled={isSubmitting}
                   onClick={() => handleGoogleLogin()}
                 >
                   Login with Google
                 </Button>
                 <FieldDescription className="text-center">
-                  Don&apos;t have an account? <Link href="/signup" className="text-blue-500 underline">Sign up</Link>
+                  Don&apos;t have an account?{" "}
+                  {isSubmitting ? (
+                    <span className="text-gray-400 cursor-not-allowed">Sign up</span>
+                  ) : (
+                    <Link href="/signup" className="text-blue-500 underline">
+                      Sign up
+                    </Link>
+                  )}
                 </FieldDescription>
               </Field>
             </FieldGroup>

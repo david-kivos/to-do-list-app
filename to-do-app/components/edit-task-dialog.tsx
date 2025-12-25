@@ -24,6 +24,16 @@ import { Textarea } from "@/components/ui/textarea"
 import { updateTask } from "@/lib/api"
 import { Task } from "@/app/tasks/columns"
 import { useRouter } from "next/navigation"
+import { Calendar } from "@/components/ui/calendar"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { CalendarIcon } from "lucide-react"
+import { format } from "date-fns"
+import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 type EditTaskDialogProps = {
   task: Task
@@ -34,10 +44,14 @@ type EditTaskDialogProps = {
 export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [dueDate, setDueDate] = useState<Date | undefined>(
+    task.due_date ? new Date(task.due_date) : undefined
+  )
   const [formData, setFormData] = useState({
     title: task.title,
     description: task.description,
     status: task.status,
+    priority: task.priority,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,7 +59,14 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
     setIsLoading(true)
 
     try {
-      await updateTask(task.id, formData)
+      const taskData = {
+        ...formData,
+        due_date: dueDate ? dueDate.toISOString() : undefined,
+      }
+      await updateTask(task.id, taskData)
+      toast.success("Task updated", {
+        description: `Task "${task.title}" has been updated."`,
+      })
       onOpenChange(false)
       router.refresh() // Refresh the page to show updated data
     } catch (error: any) {
@@ -80,6 +101,58 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="priority">Priority</Label>
+              <Select
+                value={formData.priority}
+                onValueChange={(value: any) => setFormData({ ...formData, priority: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="mid">Mid</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Due Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !dueDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dueDate ? format(dueDate, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={dueDate}
+                    onSelect={setDueDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              {dueDate && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setDueDate(undefined)}
+                  className="mt-1"
+                >
+                  Clear date
+                </Button>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="status">Status</Label>

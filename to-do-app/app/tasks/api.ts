@@ -6,7 +6,8 @@ import { redirect } from "next/navigation";
 
 export async function getTasksData(
   page: number = 1, 
-  pageSize: number = 10
+  pageSize: number = 10,
+  status?: "not_started" | "in_progress" | "done" | "cancelled"
 ): Promise<PaginatedTaskResponse> {
   const cookieStore = await cookies();
   const access = cookieStore.get('access')
@@ -19,6 +20,10 @@ export async function getTasksData(
     page_size: pageSize.toString(),
   });
 
+  if (status) {
+    params.append('status', status);
+  }
+  
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/task/all/?${params}`,
     {

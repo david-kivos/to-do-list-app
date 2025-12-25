@@ -121,6 +121,8 @@ type UpdateTaskPayload = {
   title?: string;
   description?: string;
   status?: "not_started" | "in_progress" | "done" | "cancelled";
+  priority?: "low" | "mid" | "high";
+  due_date?: string;
 }
 
 export async function updateTask(taskId: string, payload: UpdateTaskPayload) {
@@ -143,6 +145,7 @@ export async function updateTask(taskId: string, payload: UpdateTaskPayload) {
     }
   );
 
+  console.log('result: ', res)
   if (res.status === 401) {
     redirect("/login");
   }
@@ -210,7 +213,9 @@ export async function getCurrentUser() {
 type CreateTaskPayload = {
   title: string;
   description?: string;
-  status: "Not Started" | "In Progress" | "Done" | "Cancelled";
+  status: "not_started" | "in_progress" | "done" | "cancelled";
+  priority: "low" | "mid" | "high";
+  due_date?: string;
 }
 
 export async function createTask(payload: CreateTaskPayload) {
@@ -220,7 +225,6 @@ export async function createTask(payload: CreateTaskPayload) {
   if (!access) {
     throw new Error("Not authenticated");
   }
-
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/task/`,
     {

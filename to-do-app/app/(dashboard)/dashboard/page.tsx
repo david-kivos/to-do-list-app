@@ -13,6 +13,7 @@ export default async function Page({
   const params = await searchParams
   const page = Number(params?.page) || 1;
   const data = await getTasksData(page, 10)
+  const completedTasksData = await getTasksData(1, 10, "done")
   
   return (
     <>
@@ -27,12 +28,24 @@ export default async function Page({
             </div>
             <CreateTaskButton />
           </div>
-          <DataTable 
-            columns={columns} 
-            data={data.results}
-            count={data.count}
-            page={page} 
-          />
+          <div>
+            <h2 className="text-2xl font-bold mb-4">All Tasks</h2>
+            <DataTable 
+              columns={columns} 
+              data={data.results}
+              count={data.count}
+              page={page} 
+            />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Completed Tasks ({completedTasksData.count})</h2>
+            <DataTable 
+              columns={columns} 
+              data={completedTasksData.results}
+              count={completedTasksData.count}
+              page={1} 
+            />
+          </div>
         </div>
       </div>
     </>

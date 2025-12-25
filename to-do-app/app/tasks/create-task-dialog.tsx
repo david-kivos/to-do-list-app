@@ -11,6 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Calendar } from "@/components/ui/calendar"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -20,9 +26,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { CalendarIcon } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { createTask } from "@/lib/api"
 import { useRouter } from "next/navigation"
+import { cn } from "@/lib/utils"
+import { format } from "date-fns"
+import { toast } from "sonner"
 
 type CreateTaskDialogProps = {
   open: boolean
@@ -32,10 +42,13 @@ type CreateTaskDialogProps = {
 export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [dueDate, setDueDate] = useState<Date>()
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    status: "not_started" as "Not Started" | "In Progress" | "Done" | "Cancelled",
+    status: "not_started" as "not_started" | "in_progress" | "done" | "cancelled",
+    priority: "mid" as "low" | "mid" | "high",
+    // due_date: "",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,14 +56,25 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
     setIsLoading(true)
 
     try {
-      await createTask(formData)
+      const taskData = {
+        ...formData,
+        // due_date: formData.due_date || undefined,
+        due_date: dueDate ? dueDate.toISOString() : undefined,
+      }
+      await createTask(taskData)
+      toast.success("Task created successfully!", {
+        description: `"${formData.title}" has been added to your task list.`,
+      })
       onOpenChange(false)
       // Reset form
       setFormData({
         title: "",
         description: "",
-        status: "Not Started",
+        status: "not_started",
+        priority: "mid",
+        // due_date: "",
       })
+      setDueDate(undefined)
       router.refresh() // Refresh the page to show new task
     } catch (error: any) {
       console.error("Failed to create task:", error)
@@ -89,6 +113,47 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="priority">Priority</Label>
+              <Select
+                value={formData.priority}
+                onValueChange={(value: any) => setFormData({ ...formData, priority: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="mid">Mid</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="due_date">Due Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !dueDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dueDate ? format(dueDate, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={dueDate}
+                    onSelect={setDueDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="status">Status</Label>
