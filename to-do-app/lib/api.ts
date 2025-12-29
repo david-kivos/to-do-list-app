@@ -89,7 +89,8 @@ export async function updateTask(taskId: string, payload: UpdateTaskPayload) {
   const access = cookieStore.get('access');
 
   if (!access) {
-    throw new Error("Not authenticated");
+    // throw new Error("Not authenticated");
+    return {"status": 'error', "message": 'Not authenticated'}
   }
 
   const res = await fetch(
