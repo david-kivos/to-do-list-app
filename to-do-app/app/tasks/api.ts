@@ -1,7 +1,7 @@
 "use server"
 
 import { cookies } from "next/headers";
-import { Task, PaginatedTaskResponse } from "./columns"
+import { PaginatedTaskResponse } from "./columns"
 import { redirect } from "next/navigation";
 
 export async function getTasksData(

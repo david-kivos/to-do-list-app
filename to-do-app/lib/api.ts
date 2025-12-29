@@ -42,34 +42,13 @@ export async function loginAction(payload: LoginPayload) {
 
   if (!res.ok) {
     const error = await res.json();
-    console.log('error login: ', error)
     return { success: false, error };
 
   }
 
   const data = await res.json();
   
-  const cookieStore = await cookies();
-  cookieStore.set('access', data.access, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 5 * 60,
-  });
-  
-  cookieStore.set('refresh', data.refresh, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60,
-  });
-
-  cookieStore.set('user', JSON.stringify(data.user), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60,
-  });
+  await setTokens(data)
 
   return { success: true, message: data.message };
 }
@@ -92,27 +71,7 @@ export async function registerAction<Req, Res>(endpoint: string, payload: Req): 
     return { ok: false, error: data };
   }
 
-  const cookieStore = await cookies();
-  cookieStore.set('access', data.access, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 5 * 60,
-  });
-  
-  cookieStore.set('refresh', data.refresh, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60,
-  });
-
-  cookieStore.set('user', JSON.stringify(data.user), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60,
-  });
+  await setTokens(data)
 
   return { ok: true, data: data as Res };
 }
@@ -126,7 +85,6 @@ type UpdateTaskPayload = {
 }
 
 export async function updateTask(taskId: string, payload: UpdateTaskPayload) {
-  console.log('update task')
   const cookieStore = await cookies();
   const access = cookieStore.get('access');
 
@@ -146,9 +104,8 @@ export async function updateTask(taskId: string, payload: UpdateTaskPayload) {
     }
   );
 
-  console.log('result: ', res)
   if (res.status === 401) {
-    redirect("/login");
+    throw new Error("Not authenticated");
   }
 
   if (!res.ok) {
@@ -182,7 +139,7 @@ export async function deleteTask(taskId: string) {
   );
 
   if (res.status === 401) {
-    redirect("/login");
+    throw new Error("Not authenticated");
   }
 
   if (!res.ok) {
@@ -190,7 +147,6 @@ export async function deleteTask(taskId: string) {
     throw new Error(error.message || "Failed to delete task");
   }
 
-  // Revalidate the tasks page to refresh the data
   revalidatePath('/dashboard');
   
   return { success: true };
@@ -239,7 +195,7 @@ export async function createTask(payload: CreateTaskPayload) {
   );
 
   if (res.status === 401) {
-    redirect("/login");
+    throw new Error("Not authenticated");
   }
 
   if (!res.ok) {
@@ -292,13 +248,62 @@ export async function googleLoginAction(code: string) {
 
     const data = await res.json();
     
-    const cookieStore = await cookies();
-    
-    cookieStore.set('access', data.access, {
+    await setTokens(data)
+
+    return { success: true, user: data.user };
+  } catch (error: any) {
+    throw new Error(error.message || "Google login failed");
+  }
+}
+
+async function getAuthToken(): Promise<string | null> {
+  const cookieStore = await cookies();
+  const access = cookieStore.get('access');
+  
+  if (!access) {
+    console.log('⚠️ Access token missing, clearing all auth cookies');
+    cookieStore.delete('access');
+    cookieStore.delete('refresh');
+    cookieStore.delete('user');
+    return null;
+  }
+  
+  return access.value;
+}
+
+export async function clearAuthCookies() {
+  const cookieStore = await cookies();
+  
+  try {
+    cookieStore.delete('refresh');
+  }
+  catch {
+    console.log('Error deleting refresh cookie.')
+  }
+  try {
+    cookieStore.delete('user')
+  }
+  catch {
+    console.log('Error deleting user cookie.')
+  }
+  try {
+    cookieStore.delete('access')
+  }
+  catch {
+    console.log('Error deleting access cookie.')
+  }
+  
+  console.log('Auth cookies cleared');
+}
+
+export async function setTokens(data: any) {
+  const cookieStore = await cookies();
+
+  cookieStore.set('access', data.access, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 5 * 60,
+      maxAge: 30 * 60,
     });
     
     cookieStore.set('refresh', data.refresh, {
@@ -314,9 +319,4 @@ export async function googleLoginAction(code: string) {
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60,
     });
-
-    return { success: true, user: data.user };
-  } catch (error: any) {
-    throw new Error(error.message || "Google login failed");
-  }
 }

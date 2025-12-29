@@ -57,9 +57,19 @@ export function StatusSelect({ taskId, currentStatus, title }: StatusSelectProps
         description: `Status of task "${title}" has been updated.`,
       })
       router.refresh()
-    } catch (error) {
-      console.error("Failed to update status:", error)
-      alert("Failed to update status")
+    } catch (error: any) {
+      console.error("Failed to update task:", error)
+      const errorMessage = error.message || "Failed to update task";
+      
+      if (errorMessage.startsWith("Not authenticated")) {
+        const { showSessionExpiredDialog } = await import("@/components/session-expired-dialog")
+        showSessionExpiredDialog()
+      } else {
+        const displayMessage = errorMessage.replace(/^(API_ERROR_\d+|NETWORK_ERROR|UNKNOWN_ERROR):\s*/, '');
+        toast.error("Failed to update task", {
+          description: displayMessage,
+        })
+      }
     } finally {
       setIsLoading(false)
     }

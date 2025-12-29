@@ -3,30 +3,12 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { useState } from "react"
-import { EditTaskDialog } from "@/components/edit-task-dialog"
-// import { deleteTask } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { TaskActions } from "./task-actions"
 import { Badge } from "@/components/ui/badge"
 import { Check } from "lucide-react"
 import { updateTask } from "@/lib/api"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { StatusSelect } from "@/components/status-select"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
@@ -118,9 +100,19 @@ export function CompleteTaskButton({ taskId, completed, title }: CompleteTaskBut
         description: `Task "${title}" has been completed.`,
       })
       router.refresh()
-    } catch (error) {
-      console.error("Failed to mark task as complete:", error)
-      // alert("Failed to mark task as complete")
+    } catch (error: any) {
+      console.error("Failed to complete task:", error)
+      const errorMessage = error.message || "Failed to complete task";
+      
+      if (errorMessage.startsWith("Not authenticated")) {
+        const { showSessionExpiredDialog } = await import("@/components/session-expired-dialog")
+        showSessionExpiredDialog()
+      } else {
+        const displayMessage = errorMessage.replace(/^(API_ERROR_\d+|NETWORK_ERROR|UNKNOWN_ERROR):\s*/, '');
+        toast.error("Failed to complete task", {
+          description: displayMessage,
+        })
+      }
     } finally {
       setIsLoading(false)
     }
@@ -130,7 +122,6 @@ export function CompleteTaskButton({ taskId, completed, title }: CompleteTaskBut
     return (
       <Button variant="ghost" size="sm" disabled className="text-muted-foreground">
         <Check className="h-4 w-4 mr-1" />
-        {/* Completed */}
       </Button>
     )
   }
@@ -142,7 +133,6 @@ export function CompleteTaskButton({ taskId, completed, title }: CompleteTaskBut
       onClick={handleComplete}
       disabled={isLoading}
     >
-      {/* <Check className="h-4 w-4 mr-1" /> */}
       {isLoading ? (
         <>
           <Spinner className="mr-2" />
@@ -150,7 +140,6 @@ export function CompleteTaskButton({ taskId, completed, title }: CompleteTaskBut
       ) : (
         <Check className="h-4 w-4 mr-1" />
       )}
-      {/* {isLoading ? "Marking..." : "Complete"} */}
     </Button>
   )
 }
@@ -197,14 +186,6 @@ export const columns: ColumnDef<Task>[] = [
         />
       )
     },
-    // cell: ({ row }) => {
-    //   const status = row.getValue("status") as string
-    //   return (
-    //     <Badge className={getStatusColor(status)}>
-    //       {formatStatus(status)}
-    //     </Badge>
-    //   )
-    // },
   },
   {
     id: "complete",
@@ -316,8 +297,6 @@ export const columns: ColumnDef<Task>[] = [
         year: "numeric",
         month: "short",
         day: "numeric",
-        // hour: "2-digit",
-        // minute: "2-digit",
       })
     },
   },

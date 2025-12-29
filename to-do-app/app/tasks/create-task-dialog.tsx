@@ -1,4 +1,3 @@
-// app/tasks/create-task-dialog.tsx
 "use client"
 
 import { useEffect, useState } from "react"
@@ -48,7 +47,6 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
     description: "",
     status: "not_started" as "not_started" | "in_progress" | "done" | "cancelled",
     priority: "mid" as "low" | "mid" | "high",
-    // due_date: "",
   })
 
   useEffect(() => {
@@ -70,7 +68,6 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
     try {
       const taskData = {
         ...formData,
-        // due_date: formData.due_date || undefined,
         due_date: dueDate ? dueDate.toISOString() : undefined,
       }
       await createTask(taskData)
@@ -78,19 +75,30 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
         description: `"${formData.title}" has been added to your task list.`,
       })
       onOpenChange(false)
-      // Reset form
+
       setFormData({
         title: "",
         description: "",
         status: "not_started",
         priority: "mid",
-        // due_date: "",
       })
       setDueDate(undefined)
-      router.refresh() // Refresh the page to show new task
+      router.refresh()
     } catch (error: any) {
       console.error("Failed to create task:", error)
-      // alert(error.message || "Failed to create task")
+      const errorMessage = error.message || "Failed to create task";
+      
+      if (errorMessage.startsWith("Not authenticated")) {
+        console.log('auth error na create task')
+        onOpenChange(false)
+        const { showSessionExpiredDialog } = await import("@/components/session-expired-dialog")
+        showSessionExpiredDialog()
+      } else {
+        const displayMessage = errorMessage.replace(/^(API_ERROR_\d+|NETWORK_ERROR|UNKNOWN_ERROR):\s*/, '');
+        toast.error("Failed to create task", {
+          description: displayMessage,
+        })
+      }
     } finally {
       setIsLoading(false)
     }

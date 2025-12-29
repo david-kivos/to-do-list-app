@@ -5,10 +5,8 @@ import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -80,10 +78,21 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
         description: `Task "${task.title}" has been updated."`,
       })
       onOpenChange(false)
-      router.refresh() // Refresh the page to show updated data
+      router.refresh()
     } catch (error: any) {
-      console.error("Failed to update task:", error)
-      // alert(error.message || "Failed to update task")
+      console.error("Failed to edit task:", error)
+      const errorMessage = error.message || "Failed to edit task";
+      
+      if (errorMessage.startsWith("Not authenticated")) {
+        onOpenChange(false)
+        const { showSessionExpiredDialog } = await import("@/components/session-expired-dialog")
+        showSessionExpiredDialog()
+      } else {
+        const displayMessage = errorMessage.replace(/^(API_ERROR_\d+|NETWORK_ERROR|UNKNOWN_ERROR):\s*/, '');
+        toast.error("Failed to edit task", {
+          description: displayMessage,
+        })
+      }
     } finally {
       setIsLoading(false)
     }

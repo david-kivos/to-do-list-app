@@ -7,7 +7,6 @@ import {
   flexRender,
   ColumnFiltersState,
   getCoreRowModel,
-  getPaginationRowModel,
   getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
@@ -233,7 +232,6 @@ export function DataTable<TData, TValue>({
             variant="outline"
             size="sm"
             disabled={page <= 1}
-            // onClick={() => router.push(`?page=${page - 1}`)}
             onClick={() => router.push(createPageUrl(page - 1))}
             >
             Previous
@@ -247,7 +245,6 @@ export function DataTable<TData, TValue>({
             variant="outline"
             size="sm"
             disabled={page >= totalPages}
-            // onClick={() => router.push(`?page=${page + 1}`)}
             onClick={() => router.push(createPageUrl(page + 1))}
             >
             Next

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { registerAction, googleLoginAction } from "@/lib/api";
 import Link from "next/link";
@@ -19,7 +18,6 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { SignupRequest, SignupResponse } from "@/types";
 import { useForm } from "react-hook-form";
 import { useGoogleLogin } from '@react-oauth/google';
 

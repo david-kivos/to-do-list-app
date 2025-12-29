@@ -45,7 +45,6 @@ export function LoginForm({
           });
         }
         
-        // Handle field-specific errors from API
         if (err.email) {
           setError("email", {
             type: "server",
