@@ -251,17 +251,23 @@ export const columns: ColumnDef<Task>[] = [
     },
     cell: ({ row }) => {
       const dueDate = row.getValue("due_date")
+      const task = row.original
       if (!dueDate) return <span className="text-muted-foreground">-</span>
       
       const date = new Date(dueDate as string)
-      
+      const formattedDate = date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+
+      if (task.completed) {
+        return <span className="text-muted-foreground">{formattedDate}</span>
+      }
+
       return (
         <Badge className={getDueDateStyle(dueDate as string)}>
-          {date.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          })}
+          {formattedDate}
         </Badge>
       )
     },

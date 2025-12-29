@@ -29,7 +29,7 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
-  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<LoginFormFields>({ mode: "onChange" });
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<LoginFormFields>();
 
   const onSubmit = async (data: LoginFormFields) => {
     try {
@@ -44,30 +44,31 @@ export function LoginForm({
             message: err.non_field_errors.join(" "),
           });
         }
+        
+        // Handle field-specific errors from API
+        if (err.email) {
+          setError("email", {
+            type: "server",
+            message: err.email.join(" "),
+          });
+        }
+        
+        if (err.password) {
+          setError("password", {
+            type: "server",
+            message: err.password.join(" "),
+          });
+        }
       }
       else {
         router.push("/dashboard");
       }
     } catch (err: any) {
       console.log('caught error: ', err);
-      // setError("root", {
-      //   type: "server",
-      //   message: err.message || "Invalid credentials",
-      // });
-
-      // Object.keys(err || {}).forEach((key) => {
-      //   setError(key as keyof LoginFormFields, {
-      //     type: "server",
-      //     message: err[key].join(" "),
-      //   });
-      // });
-
-      if (!err) {
-        setError("root", {
-          type: "server",
-          message: "Something went wrong",
-        });
-      }
+      setError("root", {
+        type: "server",
+        message: "Something went wrong. Please try again.",
+      });
     }
   };
   
@@ -112,13 +113,7 @@ export function LoginForm({
                   type="email"
                   placeholder="m@example.com"
                   disabled={isSubmitting}
-                  {...register("email", {
-                    required: "Email is required",
-                    pattern: {
-                      value: /\S+@\S+\.\S+/,
-                      message: "Invalid email address",
-                    },
-                  })}
+                  {...register("email")}
                 />
                 {errors.email && (
                   <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
@@ -138,10 +133,7 @@ export function LoginForm({
                   id="password" 
                   type="password" 
                   disabled={isSubmitting}
-                  {...register("password", {
-                    required: "Password is required",
-                    minLength: { value: 8, message: "Password must be at least 8 characters" },
-                  })}
+                  {...register("password")}
                 />
                 {errors.password && (
                   <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
