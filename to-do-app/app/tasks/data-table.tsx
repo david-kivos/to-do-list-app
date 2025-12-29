@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   Select,
   SelectContent,
@@ -47,6 +47,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
   count: number
   page: number
+  pageParam?: string
 }
 
 export function DataTable<TData, TValue>({
@@ -54,11 +55,17 @@ export function DataTable<TData, TValue>({
   data,
   count,
   page,
+  pageParam = "page",
 }: DataTableProps<TData, TValue>) {
     const router = useRouter()
     const pageSize = 10
     const totalPages = Math.ceil(count / pageSize)
-
+    const searchParams = useSearchParams()
+    const createPageUrl = (newPage: number) => {
+      const params = new URLSearchParams(searchParams.toString())
+      params.set(pageParam, newPage.toString())
+      return `?${params.toString()}`
+    }
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
         []
@@ -226,7 +233,8 @@ export function DataTable<TData, TValue>({
             variant="outline"
             size="sm"
             disabled={page <= 1}
-            onClick={() => router.push(`?page=${page - 1}`)}
+            // onClick={() => router.push(`?page=${page - 1}`)}
+            onClick={() => router.push(createPageUrl(page - 1))}
             >
             Previous
             </Button>
@@ -239,7 +247,8 @@ export function DataTable<TData, TValue>({
             variant="outline"
             size="sm"
             disabled={page >= totalPages}
-            onClick={() => router.push(`?page=${page + 1}`)}
+            // onClick={() => router.push(`?page=${page + 1}`)}
+            onClick={() => router.push(createPageUrl(page + 1))}
             >
             Next
             </Button>

@@ -126,6 +126,7 @@ type UpdateTaskPayload = {
 }
 
 export async function updateTask(taskId: string, payload: UpdateTaskPayload) {
+  console.log('update task')
   const cookieStore = await cookies();
   const access = cookieStore.get('access');
 
@@ -190,7 +191,7 @@ export async function deleteTask(taskId: string) {
   }
 
   // Revalidate the tasks page to refresh the data
-  revalidatePath('/tasks');
+  revalidatePath('/dashboard');
   
   return { success: true };
 }

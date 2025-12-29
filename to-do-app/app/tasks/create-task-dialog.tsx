@@ -1,7 +1,7 @@
 // app/tasks/create-task-dialog.tsx
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -51,6 +51,18 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
     // due_date: "",
   })
 
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        title: "",
+        description: "",
+        status: "not_started",
+        priority: "mid",
+      })
+      setDueDate(undefined)
+    }
+  }, [open])
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -78,7 +90,7 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
       router.refresh() // Refresh the page to show new task
     } catch (error: any) {
       console.error("Failed to create task:", error)
-      alert(error.message || "Failed to create task")
+      // alert(error.message || "Failed to create task")
     } finally {
       setIsLoading(false)
     }

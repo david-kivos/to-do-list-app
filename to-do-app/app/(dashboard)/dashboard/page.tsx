@@ -7,13 +7,14 @@ import { CreateTaskButton } from "@/app/tasks/create-task-button"
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>
+  searchParams: Promise<{ page?: string , cpage?: string}>
 }) {
   // const page = Number(searchParams?.page ?? 1)
   const params = await searchParams
   const page = Number(params?.page) || 1;
+  const cpage = Number(params?.cpage) || 1;
   const data = await getTasksData(page, 10)
-  const completedTasksData = await getTasksData(1, 10, "done")
+  const completedTasksData = await getTasksData(cpage, 10, "done")
   
   return (
     <>
@@ -35,6 +36,7 @@ export default async function Page({
               data={data.results}
               count={data.count}
               page={page} 
+              pageParam="page"
             />
           </div>
           <div>
@@ -43,7 +45,8 @@ export default async function Page({
               columns={columns} 
               data={completedTasksData.results}
               count={completedTasksData.count}
-              page={1} 
+              page={cpage} 
+              pageParam="cpage"
             />
           </div>
         </div>

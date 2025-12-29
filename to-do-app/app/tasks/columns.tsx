@@ -100,7 +100,7 @@ const getDueDateStyle = (dueDate: string) => {
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
   
   if (diffDays < 0) {
-    return "bg-gray-500"
+    return "bg-red-600"
   } else if (diffDays === 0) {
     return "bg-red-600"
   } else if (diffDays === 1) {
@@ -140,7 +140,7 @@ export function CompleteTaskButton({ taskId, status, title }: CompleteTaskButton
       router.refresh()
     } catch (error) {
       console.error("Failed to mark task as complete:", error)
-      alert("Failed to mark task as complete")
+      // alert("Failed to mark task as complete")
     } finally {
       setIsLoading(false)
     }

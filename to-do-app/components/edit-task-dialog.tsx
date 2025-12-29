@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -53,6 +53,18 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
     status: task.status,
     priority: task.priority,
   })
+  
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        title: task.title,
+        description: task.description,
+        status: task.status,
+        priority: task.priority,
+      })
+      setDueDate(task.due_date ? new Date(task.due_date) : undefined)
+    }
+  }, [task, open])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,7 +83,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
       router.refresh() // Refresh the page to show updated data
     } catch (error: any) {
       console.error("Failed to update task:", error)
-      alert(error.message || "Failed to update task")
+      // alert(error.message || "Failed to update task")
     } finally {
       setIsLoading(false)
     }
