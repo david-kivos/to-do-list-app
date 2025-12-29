@@ -9,12 +9,11 @@ export default async function Page({
 }: {
   searchParams: Promise<{ page?: string , cpage?: string}>
 }) {
-  // const page = Number(searchParams?.page ?? 1)
   const params = await searchParams
   const page = Number(params?.page) || 1;
   const cpage = Number(params?.cpage) || 1;
   const data = await getTasksData(page, 10)
-  const completedTasksData = await getTasksData(cpage, 10, "done")
+  const completedTasksData = await getTasksData(cpage, 10, true)
   
   return (
     <>

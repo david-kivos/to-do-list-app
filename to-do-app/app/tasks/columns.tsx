@@ -39,19 +39,13 @@ export type Task = {
   status: "not_started" | "in_progress" | "done" | "cancelled"
   priority: "low" | "mid" | "high"
   due_date?: string
+  completed: boolean
 }
 export type PaginatedTaskResponse = {
   count: number
   next: string | null
   previous: string | null
   results: Task[]
-}
-
-const formatStatus = (status: string): string => {
-  return status
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
 }
 
 const formatPriority = (priority: string): string => {
@@ -68,21 +62,6 @@ const getPriorityColor = (priority: string) => {
     case 'mid':
       return 'bg-yellow-500'
     case 'high':
-      return 'bg-red-500'
-    default:
-      return 'bg-gray-500'
-  }
-}
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'not_started':
-      return 'bg-gray-500'
-    case 'in_progress':
-      return 'bg-blue-500'
-    case 'done':
-      return 'bg-green-500'
-    case 'cancelled':
       return 'bg-red-500'
     default:
       return 'bg-gray-500'
@@ -117,20 +96,21 @@ const getDueDateStyle = (dueDate: string) => {
 }
 type CompleteTaskButtonProps = {
   taskId: string
-  status: "not_started" | "in_progress" | "done" | "cancelled"
+  completed: boolean
   title: string
 }
 
-export function CompleteTaskButton({ taskId, status, title }: CompleteTaskButtonProps) {
+export function CompleteTaskButton({ taskId, completed, title }: CompleteTaskButtonProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
   const handleComplete = async () => {
-    if (status === "done") return
+    if (completed) return
     
     setIsLoading(true)
     try {
       const payload = {
+        completed: true,
         status: "done" as const
       }
       await updateTask(taskId, payload)
@@ -146,7 +126,7 @@ export function CompleteTaskButton({ taskId, status, title }: CompleteTaskButton
     }
   }
 
-  if (status === "done") {
+  if (completed) {
     return (
       <Button variant="ghost" size="sm" disabled className="text-muted-foreground">
         <Check className="h-4 w-4 mr-1" />
@@ -231,7 +211,7 @@ export const columns: ColumnDef<Task>[] = [
     header: "Mark as completed",
     cell: ({ row }) => {
       const task = row.original
-      return <CompleteTaskButton taskId={task.id} status={task.status} title={task.title}/>
+      return <CompleteTaskButton taskId={task.id} completed={task.completed} title={task.title}/>
     },
   },
   {
