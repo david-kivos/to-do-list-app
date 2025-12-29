@@ -85,7 +85,6 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
       setDueDate(undefined)
       router.refresh()
     } catch (error: any) {
-      console.error("Failed to create task:", error)
       const errorMessage = error.message || "Failed to create task";
       
       if (errorMessage.startsWith("Not authenticated")) {
