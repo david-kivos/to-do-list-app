@@ -95,24 +95,34 @@ export function CompleteTaskButton({ taskId, completed, title }: CompleteTaskBut
         completed: true,
         status: "done" as const
       }
-      await updateTask(taskId, payload)
-      toast.success("Task completed", {
-        description: `Task "${title}" has been completed.`,
-      })
-      router.refresh()
+      const result = await updateTask(taskId, payload)
+      if (result['status'] === 'success'){
+        toast.success("Task completed", {
+          description: `Task "${title}" has been completed.`,
+        })
+        router.refresh()
+      }
+      else if (result['status'] === 'error') {
+        console.error("Failed to update task:", result['message'])
+        const errorMessage = result['message'] || "Failed to update task";
+        
+        if (errorMessage.startsWith("Not authenticated")) {
+          const { showSessionExpiredDialog } = await import("@/components/session-expired-dialog")
+          showSessionExpiredDialog()
+        } else {
+          const displayMessage = errorMessage.replace(/^(API_ERROR_\d+|NETWORK_ERROR|UNKNOWN_ERROR):\s*/, '');
+          toast.error("Failed to update task", {
+            description: displayMessage,
+          })
+        }
+      }
     } catch (error: any) {
       console.error("Failed to complete task:", error)
       const errorMessage = error.message || "Failed to complete task";
-      
-      if (errorMessage.startsWith("Not authenticated")) {
-        const { showSessionExpiredDialog } = await import("@/components/session-expired-dialog")
-        showSessionExpiredDialog()
-      } else {
-        const displayMessage = errorMessage.replace(/^(API_ERROR_\d+|NETWORK_ERROR|UNKNOWN_ERROR):\s*/, '');
-        toast.error("Failed to complete task", {
-          description: displayMessage,
-        })
-      }
+      const displayMessage = errorMessage.replace(/^(API_ERROR_\d+|NETWORK_ERROR|UNKNOWN_ERROR):\s*/, '');
+      toast.error("Failed to complete task", {
+        description: displayMessage,
+      })
     } finally {
       setIsLoading(false)
     }

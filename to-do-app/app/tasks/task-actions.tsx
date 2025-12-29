@@ -40,26 +40,35 @@ export function TaskActions({ task }: TaskActionsProps) {
   const handleDelete = async () => {
     setIsDeleting(true)
     try {
-      await deleteTask(task.id)
-      toast.success("Task deleted", {
-        description: `Task "${task.title}" has been removed from your list.`,
-      })
-      setIsDeleteOpen(false)
-      router.refresh()
+      const result = await deleteTask(task.id)
+      if (result['status'] === 'success'){
+        toast.success("Task deleted", {
+          description: `Task "${task.title}" has been removed from your list.`,
+        })
+        setIsDeleteOpen(false)
+        router.refresh()
+      }
+      else if (result['status'] === 'error') {
+        console.error("Failed to delete task:", result['message'])
+        const errorMessage = result['message'] || "Failed to delete task";
+        setIsDeleteOpen(false)
+        if (errorMessage.startsWith("Not authenticated")) {
+          const { showSessionExpiredDialog } = await import("@/components/session-expired-dialog")
+          showSessionExpiredDialog()
+        } else {
+          const displayMessage = errorMessage.replace(/^(API_ERROR_\d+|NETWORK_ERROR|UNKNOWN_ERROR):\s*/, '');
+          toast.error("Failed to delete task", {
+            description: displayMessage,
+          })
+        }
+      }
     } catch (error: any) {
       console.error("Failed to delete task:", error)
       const errorMessage = error.message || "Failed to delete task";
-      
-      if (errorMessage.startsWith("Not authenticated")) {
-        setIsDeleteOpen(false)
-        const { showSessionExpiredDialog } = await import("@/components/session-expired-dialog")
-        showSessionExpiredDialog()
-      } else {
-        const displayMessage = errorMessage.replace(/^(API_ERROR_\d+|NETWORK_ERROR|UNKNOWN_ERROR):\s*/, '');
-        toast.error("Failed to delete task", {
-          description: displayMessage,
-        })
-      }
+      const displayMessage = errorMessage.replace(/^(API_ERROR_\d+|NETWORK_ERROR|UNKNOWN_ERROR):\s*/, '');
+      toast.error("Failed to delete task", {
+        description: displayMessage,
+      })
     } finally {
       setIsDeleting(false)
     }

@@ -73,26 +73,35 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
         ...formData,
         due_date: dueDate ? dueDate.toISOString() : undefined,
       }
-      await updateTask(task.id, taskData)
-      toast.success("Task updated", {
-        description: `Task "${task.title}" has been updated."`,
-      })
-      onOpenChange(false)
-      router.refresh()
+      const result = await updateTask(task.id, taskData)
+      if (result['status'] === 'success'){
+        toast.success("Task updated", {
+          description: `Task "${task.title}" has been updated."`,
+        })
+        onOpenChange(false)
+        router.refresh()
+      }
+      else if (result['status'] === 'error') {
+        console.error("Failed to update task:", result['message'])
+        const errorMessage = result['message'] || "Failed to update task";
+        onOpenChange(false)
+        if (errorMessage.startsWith("Not authenticated")) {
+          const { showSessionExpiredDialog } = await import("@/components/session-expired-dialog")
+          showSessionExpiredDialog()
+        } else {
+          const displayMessage = errorMessage.replace(/^(API_ERROR_\d+|NETWORK_ERROR|UNKNOWN_ERROR):\s*/, '');
+          toast.error("Failed to update task", {
+            description: displayMessage,
+          })
+        }
+      }
     } catch (error: any) {
       console.error("Failed to edit task:", error)
       const errorMessage = error.message || "Failed to edit task";
-      
-      if (errorMessage.startsWith("Not authenticated")) {
-        onOpenChange(false)
-        const { showSessionExpiredDialog } = await import("@/components/session-expired-dialog")
-        showSessionExpiredDialog()
-      } else {
-        const displayMessage = errorMessage.replace(/^(API_ERROR_\d+|NETWORK_ERROR|UNKNOWN_ERROR):\s*/, '');
-        toast.error("Failed to edit task", {
-          description: displayMessage,
-        })
-      }
+      const displayMessage = errorMessage.replace(/^(API_ERROR_\d+|NETWORK_ERROR|UNKNOWN_ERROR):\s*/, '');
+      toast.error("Failed to edit task", {
+        description: displayMessage,
+      })
     } finally {
       setIsLoading(false)
     }

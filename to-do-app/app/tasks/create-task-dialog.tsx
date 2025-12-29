@@ -70,34 +70,35 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
         ...formData,
         due_date: dueDate ? dueDate.toISOString() : undefined,
       }
-      await createTask(taskData)
-      toast.success("Task created successfully!", {
-        description: `"${formData.title}" has been added to your task list.`,
-      })
-      onOpenChange(false)
-
-      setFormData({
-        title: "",
-        description: "",
-        status: "not_started",
-        priority: "mid",
-      })
-      setDueDate(undefined)
-      router.refresh()
-    } catch (error: any) {
-      const errorMessage = error.message || "Failed to create task";
-      
-      if (errorMessage.startsWith("Not authenticated")) {
-        console.log('auth error na create task')
-        onOpenChange(false)
-        const { showSessionExpiredDialog } = await import("@/components/session-expired-dialog")
-        showSessionExpiredDialog()
-      } else {
-        const displayMessage = errorMessage.replace(/^(API_ERROR_\d+|NETWORK_ERROR|UNKNOWN_ERROR):\s*/, '');
-        toast.error("Failed to create task", {
-          description: displayMessage,
+      const result = await createTask(taskData)
+      if (result['status'] === 'success'){
+        toast.success("Task created successfully!", {
+          description: `"${formData.title}" has been added to your task list.`,
         })
+        onOpenChange(false)
+        router.refresh()
       }
+      else if (result['status'] === 'error') {
+        console.error("Failed to create task:", result['message'])
+        const errorMessage = result['message'] || "Failed to create task";
+        onOpenChange(false)
+        if (errorMessage.startsWith("Not authenticated")) {
+          const { showSessionExpiredDialog } = await import("@/components/session-expired-dialog")
+          showSessionExpiredDialog()
+        } else {
+          const displayMessage = errorMessage.replace(/^(API_ERROR_\d+|NETWORK_ERROR|UNKNOWN_ERROR):\s*/, '');
+          toast.error("Failed to create task", {
+            description: displayMessage,
+          })
+        }
+      }
+    } catch (error: any) {
+      console.error("Failed to create task:", error)
+      const errorMessage = error.message || "Failed to create task";
+      const displayMessage = errorMessage.replace(/^(API_ERROR_\d+|NETWORK_ERROR|UNKNOWN_ERROR):\s*/, '');
+      toast.error("Failed to create task", {
+        description: displayMessage,
+      })
     } finally {
       setIsLoading(false)
     }

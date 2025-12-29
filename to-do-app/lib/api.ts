@@ -89,8 +89,7 @@ export async function updateTask(taskId: string, payload: UpdateTaskPayload) {
   const access = cookieStore.get('access');
 
   if (!access) {
-    // throw new Error("Not authenticated");
-    return {"status": 'error', "message": 'Not authenticated'}
+    return {"status": 'error', "message": 'Not authenticated'};
   }
 
   const res = await fetch(
@@ -106,19 +105,19 @@ export async function updateTask(taskId: string, payload: UpdateTaskPayload) {
   );
 
   if (res.status === 401) {
-    throw new Error("Not authenticated");
+    return {"status": 'error', "message": 'Not authenticated'};
   }
 
   if (!res.ok) {
     const error = await res.json();
-    throw new Error(error.message || "Failed to update task");
+    return {"status": 'error', "message": error.message || "Failed to update task"};
   }
 
   const data = await res.json();
   
   revalidatePath('/dashboard');
   
-  return data;
+  return {"status": 'success', "data": data};
 }
 
 export async function deleteTask(taskId: string) {
@@ -126,7 +125,7 @@ export async function deleteTask(taskId: string) {
   const access = cookieStore.get('access');
 
   if (!access) {
-    throw new Error("Not authenticated");
+    return {"status": 'error', "message": 'Not authenticated'};
   }
 
   const res = await fetch(
@@ -140,17 +139,17 @@ export async function deleteTask(taskId: string) {
   );
 
   if (res.status === 401) {
-    throw new Error("Not authenticated");
+    return {"status": 'error', "message": 'Not authenticated'};
   }
 
   if (!res.ok) {
     const error = await res.json();
-    throw new Error(error.message || "Failed to delete task");
+    return {"status": 'error', "message": error.message || "Failed to delete task"};
   }
 
   revalidatePath('/dashboard');
   
-  return { success: true };
+  return {"status": 'success'};
 }
 
 export async function getCurrentUser() {
@@ -181,7 +180,7 @@ export async function createTask(payload: CreateTaskPayload) {
   const access = cookieStore.get('access');
 
   if (!access) {
-    throw new Error("Not authenticated");
+    return {"status": 'error', "message": 'Not authenticated'};
   }
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/task/`,
@@ -196,19 +195,19 @@ export async function createTask(payload: CreateTaskPayload) {
   );
 
   if (res.status === 401) {
-    throw new Error("Not authenticated");
+    return {"status": 'error', "message": 'Not authenticated'};
   }
 
   if (!res.ok) {
     const error = await res.json();
-    throw new Error(error.message || "Failed to create task");
+    return {"status": 'error', "message": error.message || "Failed to create task"};
   }
 
   const data = await res.json();
   
   revalidatePath('/dashboard');
   
-  return data;
+  return {"status": 'success', "data": data};
 }
 
 export async function logoutAction() {
