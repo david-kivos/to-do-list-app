@@ -11,9 +11,9 @@ export default async function DashboardLayout({
 }) {
   const user = await getCurrentUser();
   
-  if (!user) {
-    redirect('/login');
-  }
+  // if (!user) {
+  //   redirect('/login');
+  // }
 
   return (
     <SidebarProvider>

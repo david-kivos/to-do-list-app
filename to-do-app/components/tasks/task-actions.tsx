@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { EditTaskDialog } from "@/components/edit-task-dialog"
 import { deleteTask } from "@/lib/api"
-import { useRouter } from "next/navigation"
+import { redirect, useRouter } from "next/navigation"
 import { Task } from "./columns"
 import {
   AlertDialog,
@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 import { Spinner } from "@/components/ui/spinner"
+import { getSingleTask } from "@/lib/tasks"
+import { UUID } from "crypto"
 
 type TaskActionsProps = {
   task: Task
@@ -74,6 +76,9 @@ export function TaskActions({ task }: TaskActionsProps) {
     }
   }
 
+  const handleViewTask = async (taskId: string) => {
+    redirect(`/task/${taskId}`)
+  }
   return (
     <>
       <DropdownMenu>
@@ -85,6 +90,9 @@ export function TaskActions({ task }: TaskActionsProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuItem onClick={() => handleViewTask(task.id)}>
+            View task
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setIsEditOpen(true)}>
             Edit task
           </DropdownMenuItem>

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { updateTask } from "@/lib/api"
-import { Task } from "@/app/tasks/columns"
+import { Task } from "@/components/tasks/columns"
 import { useRouter } from "next/navigation"
 import { Calendar } from "@/components/ui/calendar"
 import {

@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select"
 import { CalendarIcon } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
-import { createTask } from "@/lib/api"
+import { createTask, CreateTaskPayload } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
@@ -42,11 +42,11 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [dueDate, setDueDate] = useState<Date>()
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CreateTaskPayload>({
     title: "",
     description: "",
-    status: "not_started" as "not_started" | "in_progress" | "done" | "cancelled",
-    priority: "mid" as "low" | "mid" | "high",
+    status: "not_started",
+    priority: "mid",
   })
 
   useEffect(() => {

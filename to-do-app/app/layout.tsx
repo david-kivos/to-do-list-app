@@ -4,6 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Toaster } from "@/components/ui/sonner";
+import { SessionProvider } from "next-auth/react";
+import { TimezoneProvider } from "@/contexts/TimezoneContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,21 +30,25 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <GoogleOAuthProvider clientId={process.env.GOOGLE_CLIENT_ID!}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-            <Toaster richColors/>
-          </ThemeProvider>
-        </GoogleOAuthProvider>
-      </body>
+      <TimezoneProvider>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          {/* <SessionProvider> */}
+            <GoogleOAuthProvider clientId={process.env.GOOGLE_CLIENT_ID!}>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+              >
+                {children}
+                <Toaster richColors/>
+              </ThemeProvider>
+            </GoogleOAuthProvider>
+          {/* </SessionProvider> */}
+        </body>
+      </TimezoneProvider>
     </html>
   );
 }

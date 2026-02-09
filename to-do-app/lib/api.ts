@@ -7,7 +7,7 @@ import { google } from 'googleapis';
 
 export async function postData<Req, Res>(endpoint: string, data: Req): Promise<{ ok: boolean; data?: Res; error?: any }> {
   const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/${endpoint}`;
-
+  
   const res = await fetch(apiUrl, {
     method: "POST",
     headers: {
@@ -167,7 +167,7 @@ export async function getCurrentUser() {
   }
 }
 
-type CreateTaskPayload = {
+export type CreateTaskPayload = {
   title: string;
   description?: string;
   status: "not_started" | "in_progress" | "done" | "cancelled";

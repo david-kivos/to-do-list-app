@@ -40,6 +40,7 @@ import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { type DateRange } from "react-day-picker"
+import { useTimezone } from "@/contexts/TimezoneContext"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -60,6 +61,7 @@ export function DataTable<TData, TValue>({
     const pageSize = 10
     const totalPages = Math.ceil(count / pageSize)
     const searchParams = useSearchParams()
+    const { timezone } = useTimezone()
     const createPageUrl = (newPage: number) => {
       const params = new URLSearchParams(searchParams.toString())
       params.set(pageParam, newPage.toString())

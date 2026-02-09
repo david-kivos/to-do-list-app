@@ -1,8 +1,13 @@
 "use server"
 
 import { cookies } from "next/headers";
-import { PaginatedTaskResponse } from "./columns"
+import { PaginatedTaskResponse } from "../components/tasks/columns"
 import { redirect } from "next/navigation";
+
+import { Task } from "@/types/tasks";
+import { UUID } from "crypto";
+import axios from "axios";
+import axiosInstance from "./axios";
 
 export async function getTasksData(
   page: number = 1, 
@@ -44,4 +49,21 @@ export async function getTasksData(
   }
 
   return res.json();
+}
+
+export async function getSingleTask(taskId: string) {
+  try {
+    const response = await axiosInstance.get(`task/${taskId}`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      redirect("/login");
+    }
+    console.error('Error fetching task:', error);
+    throw error;
+  }
+}
+
+export async function redirectDashboard() {
+  redirect('/dashboard');
 }

@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
-import { CreateTaskDialog } from "@/app/tasks/create-task-dialog"
+import { CreateTaskDialog } from "@/components/tasks/create-task-dialog"
 
 export function CreateTaskButton() {
   const [isOpen, setIsOpen] = useState(false)

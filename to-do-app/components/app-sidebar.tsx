@@ -53,7 +53,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
     navMain: [
       {
         title: "Dashboard",
-        url: "#",
+        url: "/dashboard",
         icon: IconDashboard,
       },
     ],
@@ -108,7 +108,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
     navSecondary: [
       {
         title: "Settings",
-        url: "#",
+        url: "/settings",
         icon: IconSettings,
       },
       {
