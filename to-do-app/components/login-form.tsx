@@ -22,7 +22,7 @@ import { useForm } from "react-hook-form";
 import { useGoogleLogin } from '@react-oauth/google';
 import { Spinner } from "./ui/spinner";
 
-type LoginFormFields = { email: string; password: string };
+type LoginFormFields = { email: string; password: string, rememberMe?: boolean };
 
 export function LoginForm({
   className,
@@ -142,6 +142,24 @@ export function LoginForm({
               {errors.root && (
                 <p className="text-red-500 text-center text-sm mb-2">{errors.root.message}</p>
               )}
+
+              <Field>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="rememberMe"
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    disabled={isSubmitting}
+                    {...register("rememberMe")}
+                  />
+                  <label
+                    htmlFor="rememberMe"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Remember me
+                  </label>
+                </div>
+              </Field>
 
               <Field>
                 <Button type="submit" disabled={isSubmitting}>
